@@ -53,7 +53,7 @@ Debug=0
 | `TriggerKey` | Fallback trigger key used if the game's mapped control cannot be read. The in-game mapping takes priority when available. |
 | `Debug` | Enables (`1`) or disables (`0`) additional debug output. Leave it at `0` for normal use. |
 
-The activation combination is **W + trigger key**. The trigger key follows the game's mapping when available; `TriggerKey` is a fallback, not necessarily the key that will be used in that case.
+The activation combination is **native throttle input + mapped trigger key**. The trigger key follows the game's mapping when available; `TriggerKey` is a fallback, not necessarily the key that will be used in that case.
 
 Start with the default multiplier and adjust it gradually. The result varies by vehicle and driving conditions.
 
