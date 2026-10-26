@@ -5,12 +5,13 @@
 //
 // Strategy:
 // - Validate and detour the known CALL site to FUN_00C2FDB0 inside FUN_00C2F9A0.
-// - At standstill, W+Left Shift starts a persistent assist. The force multiplier
-//   remains active while W+Shift stays held, including across automatic upshifts.
+// - At standstill, native throttle input + the mapped Burnout Assist key
+//   starts a persistent assist, including across automatic upshifts.
 // - If activated while already rolling, do not inject extra torque immediately:
 //   wait until native wheel telemetry shows sustained driven-wheel slip.
 // - Do not write the clutch. GTA's native automatic transmission owns the shift.
-// - No fixed-duration force burst; releasing W or Left Shift ends the assist.
+// - No fixed-duration force burst; releasing throttle or the mapped trigger
+//   ends the assist.
 // - No handling data or wheel-output fields are written.
 // - Debug=0 disables CSV creation, CSV sampling, and verbose diagnostic logging.
 //
@@ -1234,7 +1235,7 @@ static void BeginAssist(uptr vehicle, short gear, DWORD now, float speedFiltered
         float gas = -1.0f, state = -1.0f, clutch = -1.0f;
         ReadVehicleSample(vehicle, gas, state, clutch);
         const char* mode = fromStandstill ? "STANDSTILL_LAUNCH" : "ROLLING_WAIT_FOR_NATIVE_SLIP";
-        Log("ASSIST START: mode=%s vehicle=0x%08X gear=%d WShift=%d gas=%.3f state1094=%.3f clutchReadOnly=%.3f K=%.2f noForceTimer=1 floor=%.3f untilMotion=1 rollingSlipThreshold=%.2f minLongSpeed=%.2f confirmSamples=%d speedFiltered=%.3f speedRaw=%.3f longitudinalSpeed=%.3f",
+        Log("ASSIST START: mode=%s vehicle=0x%08X gear=%d comboHeld=%d gas=%.3f state1094=%.3f clutchReadOnly=%.3f K=%.2f noForceTimer=1 floor=%.3f untilMotion=1 rollingSlipThreshold=%.2f minLongSpeed=%.2f confirmSamples=%d speedFiltered=%.3f speedRaw=%.3f longitudinalSpeed=%.3f",
             mode, (unsigned)vehicle, (int)gear, comboHeld ? 1 : 0,
             (double)gas, (double)state, (double)clutch,
             (double)g_forceMultiplier, (double)g_cfg.standstillScalarFloor,
@@ -1316,7 +1317,7 @@ static void TickAssist(uptr vehicle, short gear, DWORD now, float speedFiltered,
             float gas = -1.0f, state = -1.0f, clutch = -1.0f;
             ReadVehicleSample(vehicle, gas, state, clutch);
         }
-        StopForceAssist("W+LeftShift released", now);
+        StopForceAssist("throttle or mapped trigger released", now);
         g_phase = PHASE_DONE;
         g_telemetryUntilTick = g_cfg.debug ? now + (DWORD)g_cfg.telemetryTailMs : 0;
         g_lastCsvSample = 0;
@@ -1356,7 +1357,7 @@ static void TickAssist(uptr vehicle, short gear, DWORD now, float speedFiltered,
             InterlockedExchange(&g_launchMotionStarted, 1);
             InterlockedExchange(&g_forceActive, 1);
             if (g_cfg.debug) {
-                Log("ROLLING SLIP CONFIRMED: assist engaged gear=%d gas=%.3f longitudinal=%.3f maxSlip=%.3f; stays active while W+LeftShift held",
+                Log("ROLLING SLIP CONFIRMED: assist engaged gear=%d gas=%.3f longitudinal=%.3f maxSlip=%.3f; stays active while throttle+mapped trigger held",
                     (int)gear, (double)gas, (double)g_speedLongitudinalRaw, (double)slipMaximum);
                 float state = -1.0f, clutch = -1.0f;
                 ReadVehicleSample(vehicle, gas, state, clutch);
@@ -1462,8 +1463,16 @@ static DWORD WINAPI Worker(LPVOID)
             g_speedLongitudinalRaw = -999.0f;
         }
 
-        bool wHeld = (GetAsyncKeyState('W') & 0x8000) != 0;
+        float gasInput = 0.0f;
 
+		bool gasInputValid =
+		    Rd(currentVehicle + V_GAS, gasInput) &&
+		    IsFiniteFloat(gasInput) &&
+		    gasInput >= 0.0f &&
+		    gasInput <= 1.1f;
+		
+		bool throttleHeld = gasInputValid && gasInput >= 0.5f;
+		
 		bool mappedHeld = false;
 		WORD mappedScanCode = 0;
 		BYTE mappedState = 0;
@@ -1475,7 +1484,7 @@ static DWORD WINAPI Worker(LPVOID)
 		    ? mappedHeld
 		    : (GetAsyncKeyState(g_cfg.key) & 0x8000) != 0;
 		
-		bool comboHeld = g_cfg.enabled && wHeld && keyHeld;
+		bool comboHeld = g_cfg.enabled && throttleHeld && keyHeld;
 
         short gear = -1;
         Rd(currentVehicle + V_TRANSMISSION, gear);
