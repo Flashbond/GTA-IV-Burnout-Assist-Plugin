@@ -1,4 +1,4 @@
-// LaunchAssist.cpp - v0.4.1 quiet diagnostics held-intent automatic-transmission burnout assist
+// BurnoutAssist.cpp - v0.4.1 quiet diagnostics held-intent automatic-transmission burnout assist
 // No force-duration timer and no clutch writes. The game's automatic gearbox owns shifts.
 // Target: GTA IV Complete Edition 1.2.0.59, x86; no ScriptHook dependency.
 // Build as a 32-bit DLL and rename output to LaunchAssist v0.4.1.asi.
