@@ -21,7 +21,7 @@ BurnoutAssist is a native 32-bit ASI plugin for the supported GTA IV executable.
 
 The hook checks the expected instruction and target before patching, helping prevent the plugin from modifying an unexpected code location. The plugin also performs a strict executable-version check.
 
-The assist activates while **W** and the configured trigger key are held together. When the game's control mapping can be read, the trigger follows the key assigned to the plugin's mapped in-vehicle control. If that mapping cannot be read, BurnoutAssist falls back to `TriggerKey` in the INI file.
+The assist activates while **native throttle input + mapped trigger key** are held together. When the game's control mapping can be read, the trigger follows the key assigned to the plugin's mapped in-vehicle control. If that mapping cannot be read, BurnoutAssist falls back to `TriggerKey` in the INI file.
 
 ## Installation
 
