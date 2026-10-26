@@ -72,6 +72,6 @@ Start with the default multiplier and adjust it gradually. The result varies by 
 
 BurnoutAssist targets the 32-bit GTA IV Complete Edition executable version **1.2.0.59**. Compatibility with other versions, third-party patches, or conflicting ASI plugins has not been confirmed.
 
-## Credits
+## Limitations
 
-Created for GTA IV players who want a more aggressive, wheelspin-focused launch without replacing the game's native vehicle behavior.
+This mod works only with 4 or 6-wheel ground vehicles.
